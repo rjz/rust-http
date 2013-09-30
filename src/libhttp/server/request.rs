@@ -119,6 +119,7 @@ impl<'self, S: Stream> RequestBuffer<'self, S> {
 }
 
 /// An HTTP request sent to the server.
+#[deriving(Clone)]
 pub struct Request {
     /// The originating IP address of the request.
     remote_addr: Option<SocketAddr>,
@@ -150,7 +151,7 @@ pub struct Request {
 }
 
 /// The URI (Request-URI in RFC 2616) as specified in the Status-Line of an HTTP request
-#[deriving(Eq)]
+#[deriving(Eq, Clone)]
 pub enum RequestUri {
     /// 'The asterisk "*" means that the request does not apply to a particular resource, but to the
     /// server itself, and is only allowed when the method used does not necessarily apply to a
@@ -198,6 +199,17 @@ impl FromStr for RequestUri {
             // TODO: parse authority with extra::net::url
             Some(Authority(request_uri.to_owned()))
         }
+    }
+}
+
+impl ToStr for RequestUri {
+    fn to_str(&self) -> ~str {
+      match self {
+        &AbsolutePath(ref url) => url.to_str(),
+        &AbsoluteUri(ref url) => url.to_str(),
+        &Star => ~"*",
+        _ => ~"<Unsupported URL format>"
+      }
     }
 }
 
